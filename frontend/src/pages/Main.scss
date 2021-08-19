@@ -1,0 +1,19 @@
+p {
+  letter-spacing: 0.075rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h3 {
+    color: #aaa;
+    font-size: 1em;
+    align-self: flex-start;
+    font-weight: normal;
+    .roomCode {
+      font-weight: bold;
+    }
+  }
+}

@@ -1,0 +1,57 @@
+:root {
+  --app-height: 100%;
+  font-size: 14px;
+  font-family: "SF Pro";
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+
+  width: 100%;
+  height: 100vh;
+  height: var(--app-height);
+
+  color: white;
+  background: #271142;
+
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+#root {
+  height: var(--app-height);
+  max-width: calc(100vw);
+  position: relative;
+  width: 100%;
+}
+
+#app {
+  // border: 2px solid red; // For Development Purposes
+  padding: 2rem;
+  height: calc(var(--app-height) - 4rem);
+  max-width: calc(100vw - 4rem);
+  // overflow: hidden;
+  // display: flex;
+  flex-direction: column;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}

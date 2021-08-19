@@ -1,0 +1,38 @@
+ul.recently_played {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  width: auto;
+  height: auto;
+
+  li {
+    float: left;
+    width: 160px;
+    height: auto;
+    padding: 1em;
+
+    img {
+      width: 160px;
+      height: 160px;
+      border-radius: 15px;
+    }
+
+    #title .marquee,
+    h3 {
+      margin: 0;
+      color: #e8dbec;
+      font-size: 1rem;
+    }
+
+    #byline .marquee {
+      font-family: "SF Pro";
+      margin: 0;
+      color: #9e80bb;
+      font-size: 12px;
+    }
+  }
+}

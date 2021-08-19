@@ -1,0 +1,40 @@
+.marquee-container {
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: row !important;
+  position: relative;
+  width: 100%;
+
+  .test.marquee {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
+    visibility: hidden;
+  }
+
+  .marquee:not(.test) {
+    flex: 0 0 auto;
+    min-width: 150%;
+    z-index: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    animation: scroll 15s linear 2s infinite;
+    animation-play-state: var(--play);
+    animation-direction: normal;
+
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+  }
+}
