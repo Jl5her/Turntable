@@ -1,0 +1,6 @@
+{
+  "name": "turntable",
+  "scripts": {
+    "dev": "concurrently \"cd frontend && yarn start\" \"cd backend && yarn dev \""
+  }
+}
