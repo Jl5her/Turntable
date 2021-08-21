@@ -14,11 +14,10 @@ const Join = (): JSX.Element => {
 
   const joinSession = () => {
     socket?.emit('join_session', roomCode)
-    console.log('join_session ' + roomCode)
   }
 
-  const joinedSession = ({ sessionId }: Session) => {
-    history.push(`/${sessionId}`)
+  const joinedSession = ({ session_id }: Session) => {
+    history.push(`/${session_id}`)
   }
 
   useEffect(() => {

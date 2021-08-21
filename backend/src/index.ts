@@ -5,9 +5,10 @@ import cors from 'cors'
 import bodyParser from 'body-parser'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import { setupSocket, initializeApp } from './turntable'
+import { setupSocket, initializeApp , sessions} from './turntable'
 import spotify from './spotify'
 import dotenv from 'dotenv'
+import { log } from './utils'
 
 dotenv.config()
 
@@ -33,9 +34,11 @@ io.on('connection', setupSocket)
 
 app.get('/', (_: Request, res: Response) => res.status(200).send(' '))
 
-app.get('/authorize', (_: Request, res: Response) => res.redirect(spotify.getAuthorizeUrl()))
+app.get('/debug', (_: Request, res: Response) => res.status(200).send(sessions))
+
+app.get('/authorize', (_: Request, res: Response) => res.redirect(spotify.get_authorize_url()))
 
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running at :${PORT}`)
+  log(`🚀 Server is running ast :${PORT}`)
 })
 

@@ -9,7 +9,7 @@ type ElinkProps = {
 }
 
 const Elink = (props: ElinkProps): JSX.Element => {
-  return <a className='elink' href={props.href}><FA name={props.icon} /> <span>{props.children}</span></a>
+  return <a className='elink' target='_blank' href={props.href}><FA name={props.icon} /> <span>{props.children}</span></a>
 }
 
 export default Elink

@@ -47,7 +47,7 @@ const App = (): JSX.Element => {
         <Router>
           <Switch>
             <Route path='/join' component={Join} />
-            <Route path='/:sessionId' component={Main} />
+            <Route path='/:session_id' component={Main} />
             <Route path='/' component={Home} />
           </Switch>
         </Router>

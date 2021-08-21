@@ -10,18 +10,18 @@ type CurrentlyPlayingProps = {
 }
 
 const CurrentlyPlaying = ({ currently_playing }: CurrentlyPlayingProps): JSX.Element => {
-  const { sessionId } = useParams<{ sessionId: string }>()
+  const { session_id } = useParams<{ session_id: string }>()
   const socket = useContext(SocketContext)
 
   const pause = () => {
-    console.log("trying to pause")
-    socket?.emit('pause', { sessionId, token: localStorage.getItem('token') })
+    socket?.emit('pause', { session_id, token: localStorage.getItem('token') })
   }
 
   const play = () => {
-    console.log("trying to play")
-    socket?.emit('play', { sessionId, token: localStorage.getItem('token') })
+    socket?.emit('play', { session_id, token: localStorage.getItem('token') })
   }
+
+  if (!currently_playing) return <></>
 
   const progress = (currently_playing?.progress_ms / currently_playing?.item.duration_ms)
 

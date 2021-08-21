@@ -10,7 +10,7 @@ type QueueProps = {
 const Queue = ({ queue }: QueueProps): JSX.Element => {
   return <>
     {queue ? <>
-      <h2>Up Next</h2>
+      <h2 style={{ marginBottom: 0 }}>Up Next</h2>
       <ul className='queue'>
         {queue.length > 0 ?
           queue?.map((song: any, index: number) =>

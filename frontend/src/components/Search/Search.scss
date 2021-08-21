@@ -6,6 +6,7 @@ ul#search_results {
   list-style-type: none;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   width: auto;
   overflow-y: scroll;
   box-shadow: 0px 0px 10px #251238 inset;

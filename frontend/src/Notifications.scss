@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: column;
   height: auto;
-  // margin: 0.5rem;
   width: calc(100%);
   position: absolute;
   top: 0;
@@ -68,12 +67,10 @@
 }
 
 .notification.exit {
-  // transform: none;
   opacity: 100%;
 }
 
 .notification.exit-active {
   opacity: 0;
-  // transform: translateY(-120%);
   transition: all 250ms ease;
 }

@@ -3,8 +3,9 @@ import { Session } from 'turntable'
 import { Socket, Server } from 'socket.io'
 import { v4 as uuidv4 } from 'uuid'
 import spotify from './spotify'
+import { log } from './utils'
 
-const sessions: { [key: string]: Session } = {}
+export const sessions: { [key: string]: Session } = {}
 
 export const setupSocket = (socket: Socket) => {
   socket.on('new_session', newSession)
@@ -16,76 +17,83 @@ export const setupSocket = (socket: Socket) => {
   socket.on('pause', pause)
   socket.on('play', play)
 
-  const {token} = socket.handshake.query
+  const { token } = socket.handshake.query
 
   socket.emit('connection', token !== 'undefined' ? token : uuidv4())
 }
 
-function newSession(this: Socket, {code, token}: {code: string, token: string}) {
+function newSession(this: Socket, { code, token }: { code: string, token: string }) {
   spotify.authorize(code)
-    .then((accessToken: string) => {
-      const sessionId = 10000 + Math.floor(Math.random() * 10000)
-      this.join(`${sessionId}`)
+    .then((data: any) => {
+      let session_id
+      do {
+        session_id = '' + (10000 + Math.floor(Math.random() * 10000))
+      } while (session_id in sessions)
 
-      sessions[sessionId] = {
-        sessionId,
-        accessToken,
-        createdAt: Date.now(),
-        deviceId: undefined,
-        hostToken: token,
-        hostSocketId: this.id,
+      this.join(`${session_id}`)
+
+      sessions[session_id] = {
+        session_id,
+        spotify_host_uri: data.host.uri,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Date.now() + (data.expires_in * 1000),
+        created_at: Date.now(),
+        device_id: undefined,
+        host_token: token,
+        host_socket_id: this.id,
         queue: []
       }
 
-      console.log(`New Room Created! (Room: ${sessionId}) (Host: '${token}')`)
+      log(`New Room Created! (Room: ${session_id}) (Host: '${token}')`)
 
-      this.emit('created_session', sessions[sessionId])
+      this.emit('created_session', sessions[session_id])
     }).catch((error: any) => {
       console.error(error.message)
       this.emit('error', error.message)
     })
 }
 
-function reconnect(this: Socket, data: { sessionId: string, token?: string }) {
+function reconnect(this: Socket, data: { session_id: string, token?: string }) {
   const {
-    sessionId,
+    session_id,
     token,
   } = data
-  console.log(`User with token '${token}' is trying to reconnect to Room ${sessionId}.`)
+  log(`User with token '${token}' is trying to reconnect to Room ${session_id}.`)
 
-  if (!(sessionId in sessions)) {
-    console.log('Room no longer exists!')
+  if (!(session_id in sessions)) {
+    log('Room no longer exists!')
     this.emit('error', 'Error reconnecting')
-  } else if (sessions[sessionId]?.hostToken === token) {
-    console.log(`Host reconnecting to ${sessionId}`)
-    sessions[sessionId].hostToken = token
-    sessions[sessionId].hostSocketId = this.id
+  } else if (sessions[session_id]?.host_token === token) {
+    log(`Host reconnecting to ${session_id}`)
+    sessions[session_id].host_token = token
+    sessions[session_id].host_socket_id = this.id
 
 
-    this.join(`${sessionId}`)
+    this.join(`${session_id}`)
 
-    this.emit('joined_session', sessions[sessionId])
+    this.emit('joined_session', sessions[session_id])
   } else {
-    console.log(`Successfully reconnected to Room ${sessionId}`)
-    this.join(`${sessionId}`)
-    this.emit('joined_session', sessions[sessionId])
+    log(`Successfully reconnected to Room ${session_id}`)
+    this.join(`${session_id}`)
+    this.emit('joined_session', sessions[session_id])
   }
 }
 
-function joinSession(this: Socket, sessionId: string) {
-  if (sessionId in sessions) {
-    this.join(`${sessionId}`)
-    console.log(`Socket joining ${sessionId}`)
-    this.emit('joined_session', sessions[sessionId])
+function joinSession(this: Socket, session_id: string) {
+  if (session_id in sessions) {
+    this.join(`${session_id}`)
+    log(`Socket joining ${session_id}`)
+    this.emit('joined_session', sessions[session_id])
   } else {
     this.emit('error', 'Session does not exist!')
   }
 }
 
 function search(this: Socket, data: any) {
-  if (data.sessionId in sessions) {
-    const { accessToken } = sessions[data.sessionId]
-    spotify.search(accessToken, data.query)
+  if (data.session_id in sessions) {
+    const { access_token } = sessions[data.session_id]
+    spotify.search(access_token, data.query)
       .then((results: any) => {
         this.emit('search_results', results)
       })
@@ -93,51 +101,52 @@ function search(this: Socket, data: any) {
 }
 
 function getDevices(this: Socket, data: any) {
-  const { deviceId } = sessions[data.sessionId]
-  spotify.getDevices()
-    .then((devices: any) => {
+  const { device_id, access_token } = sessions[data.session_id]
+  spotify.get_devices(access_token).then((devices: any) => {
       this.emit('device_list', {
         devices,
-        current_device: deviceId,
+        current_device: device_id,
       })
     })
 }
 
-function queueSong (this: Socket, {sessionId, track}: any) {
-  if(!(sessionId in sessions)) {
+function queueSong(this: Socket, { session_id, track }: any) {
+  if (!(session_id in sessions)) {
     this.emit('error', "Room does not exist!")
     return
   }
 
-  spotify.queue(sessions[sessionId].accessToken, track.uri)
-  sessions[sessionId].queue.push(track)
+  const { access_token } = sessions[session_id]
+
+  spotify.queue_song(access_token, track.uri)
+  sessions[session_id].queue.push(track)
 }
 
-function pause(this: Socket, { sessionId , token}: any) {
-  if (!(sessionId in sessions)) {
+function pause(this: Socket, { session_id, token }: any) {
+  if (!(session_id in sessions)) {
     this.emit('error', "Room does not exist!")
     return
   }
-  if (sessions[sessionId].hostToken !== token) {
+  if (sessions[session_id].host_token !== token) {
     this.emit('error', "You are not authorized to perform that action!")
     return
   }
-  spotify.pause(sessions[sessionId].accessToken).catch((error: any) => {
+  spotify.pause(sessions[session_id].access_token).catch((error: any) => {
     console.error(error.message)
     this.emit('error', error.message)
   })
 }
 
-function play(this: Socket, { sessionId, token }: any) {
-  if (!(sessionId in sessions)) {
+function play(this: Socket, { session_id, token }: any) {
+  if (!(session_id in sessions)) {
     this.emit('error', "Room does not exist!")
     return
   }
-  if (sessions[sessionId].hostToken !== token) {
+  if (sessions[session_id].host_token !== token) {
     this.emit('error', "You are not authorized to perform that action!")
     return
   }
-  spotify.play(sessions[sessionId].accessToken).catch((error: any) => {
+  spotify.play(sessions[session_id].access_token).catch((error: any) => {
     console.error(error.message)
     this.emit('error', error.message)
   })
@@ -145,27 +154,32 @@ function play(this: Socket, { sessionId, token }: any) {
 
 export const initializeApp = (io: Server) => {
   setInterval(() => {
-    Object.values(sessions).forEach(({ sessionId, accessToken }) => {
-      if (accessToken) {
-        spotify.status(accessToken).then((currentlyPlaying: any) => {
-          sessions[sessionId].queue = sessions[sessionId].queue.filter(track => track.id != currentlyPlaying.item.id)
+    for (const session of Object.values(sessions)) {
+      if (Date.now() + 5000 > session.expires_at) {
+        spotify.refresh_token(session.refresh_token).then((data: any) => {
+          session.access_token = data.access_token
+          session.expires_at = Date.now() + (data.expires_in * 1000)
+        })
+      } else if (session.access_token) {
+        spotify.get_status(session.access_token).then((currently_playing: any) => {
+          session.queue = session.queue.filter(track => track.id !== currently_playing?.item?.id)
 
-          io.to(`${sessionId}`).emit('status', {
-            queue: sessions[sessionId].queue,
-            currentlyPlaying,
+          io.to(`${session.session_id}`).emit('status', {
+            session,
+            currently_playing,
           })
         })
       }
-    })
+    }
   }, 200)
 
   setInterval(() => {
-    Object.values(sessions).forEach(({ accessToken, sessionId, createdAt }) => {
-      if (accessToken) {
-        spotify.recentlyPlayed(accessToken, createdAt).then((recentlyPlayed: any) => {
-          io.to(`${sessionId}`).emit('recently-played', recentlyPlayed)
+    for (const session of Object.values(sessions)) {
+      if (session.access_token) {
+        spotify.get_recently_played(session.access_token, session.created_at).then((recently_played: any) => {
+          io.to(session.session_id).emit('recently_played', recently_played)
         })
       }
-    })
+    }
   }, 2000)
 }

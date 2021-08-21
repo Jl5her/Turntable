@@ -12,8 +12,8 @@ const Home = (): JSX.Element => {
   const history = useHistory()
   const code = new URLSearchParams(useLocation().search).get('code')
 
-  const createdSession = ({ sessionId }: Session) => {
-    history.push(`/${sessionId}`)
+  const createdSession = ({ session_id }: Session) => {
+    history.push(`/${session_id}`)
   }
 
   useEffect(() => {

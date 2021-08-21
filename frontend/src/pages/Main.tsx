@@ -1,40 +1,39 @@
+import { Session } from 'turntable'
 import React, { useContext, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import FA from 'react-fontawesome'
 import { RecentlyPlayed, Search, Queue, CurrentlyPlaying } from 'components'
 import { SocketContext } from 'context'
-import './Main.scss'
-import { useParams } from 'react-router-dom'
-import { Session } from 'turntable'
 import Home from './Home'
+import './Main.scss'
 
 const Main = (): JSX.Element => {
-  const { sessionId } = useParams<{ sessionId: string }>()
+  const { session_id } = useParams<{ session_id: string }>()
   const socket = useContext(SocketContext)
   const [currentlyPlaying, setCurrentlyPlaying] = useState()
   const [recentlyPlayed, setRecentlyPlayed] = useState()
-  const [queue, setQueue] = useState()
   const [session, setSession] = useState<Session>()
+
+  const my_token = localStorage.getItem('token')
 
   const joinedSession = (session: Session) => {
     setSession(session)
   }
 
   useEffect(() => {
-    if (socket) {
-      socket.on('joined_session', joinedSession)
-      socket?.on('status', ({ currentlyPlaying, queue }) => {
-        setCurrentlyPlaying(currentlyPlaying)
-        setQueue(queue)
-      })
+    socket?.on('joined_session', joinedSession)
+    socket?.on('status', ({ currently_playing, session }) => {
+      setSession(session)
+      setCurrentlyPlaying(currently_playing)
+    })
 
-      socket?.on('recently-played', (recentlyPlayed) => {
-        setRecentlyPlayed(recentlyPlayed)
-      })
-    }
-    if (sessionId && socket) {
-      // window.sendNotification('Attempting to Reconnect...', 'Trying to reconnect to ' + sessionId)
-      socket?.emit('reconnect', { sessionId, token: localStorage.getItem('token') })
-    }
-  }, [socket, sessionId])
+    socket?.on('recently_played', (recently_played) => {
+      setRecentlyPlayed(recently_played)
+    })
+
+    // window.sendNotification('Attempting to Reconnect...', 'Trying to reconnect to ' + session_id)
+    socket?.emit('reconnect', { session_id, token: localStorage.getItem('token') })
+  }, [socket, session_id])
 
   const share = () => {
     if (navigator.share)
@@ -50,12 +49,13 @@ const Main = (): JSX.Element => {
   return <>
     <div onClick={share} className='header'>
       <h1>Turntable</h1>
-      <h3>Room Code: <span className='roomCode'>{sessionId}</span></h3>
+      <h3>Room Code: <span className='roomCode'>{session_id}</span>
+        {session?.host_token == my_token && <FA name='star' />}</h3>
     </div>
 
-    <Search queue={queue} />
+    <Search queue={session.queue} />
     <RecentlyPlayed recently_played={recentlyPlayed} />
-    <Queue queue={queue} />
+    <Queue queue={session.queue} />
 
     <CurrentlyPlaying currently_playing={currentlyPlaying} />
   </>

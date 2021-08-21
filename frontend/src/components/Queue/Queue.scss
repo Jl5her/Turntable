@@ -4,6 +4,8 @@ ul.queue {
   list-style-type: none;
   width: auto;
   height: auto;
+  // box-shadow: 0px 0px 10px #251238 inset;
+  overflow-y: scroll;
 
   li.placeholder {
     color: #aaa;
@@ -24,6 +26,10 @@ ul.queue {
     margin: 2rem 0;
     display: grid;
     grid-template-columns: 50px 1fr 50px;
+
+    &:last-child {
+      margin-bottom: 15vh;
+    }
 
     img {
       width: 50px;

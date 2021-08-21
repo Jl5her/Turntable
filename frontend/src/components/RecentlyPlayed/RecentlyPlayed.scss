@@ -8,6 +8,7 @@ ul.recently_played {
   overflow-y: hidden;
   width: auto;
   height: auto;
+  flex-shrink: 0;
 
   li {
     float: left;

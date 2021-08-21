@@ -12,7 +12,7 @@ type SearchProps = {
 
 const Search = ({ queue }: SearchProps): JSX.Element => {
   const socket = useContext(SocketContext)
-  const { sessionId } = useParams<{ sessionId: string }>()
+  const { session_id } = useParams<{ session_id: string }>()
   const [searchQuery, setSearchQuery] = useState<string>()
   const [searchResults, setSearchResults] = useState([])
 
@@ -21,9 +21,8 @@ const Search = ({ queue }: SearchProps): JSX.Element => {
     , [queue])
 
   const addToQueue = (track: any) => {
-    console.log(track)
     socket?.emit('queue', {
-      sessionId,
+      session_id,
       track
     })
   }
@@ -40,7 +39,7 @@ const Search = ({ queue }: SearchProps): JSX.Element => {
     if (searchQuery !== undefined && searchQuery !== '') {
       socket?.emit('search', {
         query: searchQuery,
-        sessionId
+        session_id
       })
     } else {
       setSearchResults([])

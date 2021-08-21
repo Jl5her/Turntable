@@ -30,12 +30,10 @@ body {
 }
 
 #app {
-  // border: 2px solid red; // For Development Purposes
-  padding: 2rem;
-  height: calc(var(--app-height) - 4rem);
+  padding: 2rem 2rem 0 2rem;
+  height: calc(var(--app-height) - 2rem);
   max-width: calc(100vw - 4rem);
-  // overflow: hidden;
-  // display: flex;
+  display: flex;
   flex-direction: column;
 }
 
